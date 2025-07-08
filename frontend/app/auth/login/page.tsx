@@ -153,7 +153,7 @@ return (
         {/* ▼▼▼ 2. ここに新規登録へのリンクを追加 ▼▼▼ */}
         <p className="text-center text-sm text-gray-400 mt-6">
           アカウントをお持ちでないですか？{' '}
-          <Link href="/auth/register" className="text-blue-400 hover:underline">
+          <Link href="/web/auth/register" className="text-blue-400 hover:underline">
             新規登録
           </Link>
         </p>
