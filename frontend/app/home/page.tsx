@@ -8,7 +8,7 @@ export default function HomePage() {
   const handleSignOut = async () => {
     try {
       // ログアウトAPIを呼び出してCookieを削除
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/web/api/auth/logout', { method: 'POST' });
       // basePathを考慮し、/auth/loginへ遷移
       router.push('/auth/login');
     } catch (error) {

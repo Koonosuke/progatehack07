@@ -22,6 +22,8 @@ export default function LoginPage() {
     setError(null);
 
     const user = new CognitoUser({ Username: username, Pool: userPool });
+
+    cognitoUserRef.current = user;
     const authDetails = new AuthenticationDetails({
       Username: username,
       Password: password,
@@ -31,7 +33,7 @@ export default function LoginPage() {
       onSuccess: async (result) => {
         const idToken = result.getIdToken().getJwtToken();
         try{
-          const response = await fetch('/api/auth/login', {
+          const response = await fetch('/web/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json'},
             body: JSON.stringify({ token: idToken })
@@ -73,7 +75,7 @@ export default function LoginPage() {
       onSuccess: async (result) => {
         const idToken = result.getIdToken().getJwtToken();
         try{
-          const response = await fetch('/api/auth/login', {
+          const response = await fetch('/web/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: idToken }),
