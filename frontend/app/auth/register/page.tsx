@@ -44,7 +44,7 @@ export default function RegisterPage(){
 				throw new Error(data.error || '不明なエラーが発生しました．');
 			}
 
-			router.push('/web/auth/login');
+			router.push('/auth/login');
 		} catch(error: any){
 			setError(error.message);
 		} finally{
