@@ -34,7 +34,7 @@ export default function LoginPage() {
           });
           if (!response.ok) throw new Error('APIでの認証設定に失敗');
           
-          router.push('/dashboard');
+          router.push('/home');
         } catch(apiError: any){
           setError(apiError.message);
           setIsLoading(false);

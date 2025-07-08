@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 export default function CallPage() {
   const localVideo = useRef<HTMLVideoElement>(null);
@@ -39,7 +39,7 @@ export default function CallPage() {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         {
-          urls: 'turn:54.188.61.175:3478',
+          urls: '',
           username: 'testuser',
           credential: 'testpass',
         },
