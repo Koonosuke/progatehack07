@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { userPool } from '../userPool';
@@ -115,25 +116,48 @@ if (isNewPasswordRequired) {
   )
 }
 //通常
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <h1 className="text-3xl font-bold mb-6">ログイン</h1>
-      <input
-        className="bg-gray-800 px-4 py-2 mb-4 w-full"
-        placeholder="ユーザー名またはメール"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        className="bg-gray-800 px-4 py-2 mb-4 w-full"
-        placeholder="パスワード"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button onClick={handleLogin} className="bg-blue-600 px-4 py-2 rounded">
-        ログイン
-      </button>
+return (
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-6 text-center">ログイン</h1>
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-bold">メールアドレス</label>
+            <input
+              className="bg-gray-700 px-4 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="ユーザー名またはメール"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-bold">パスワード</label>
+            <input
+              type="password"
+              className="bg-gray-700 px-4 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="パスワード"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded w-full transition-colors disabled:opacity-50"
+          >
+            {isLoading ? 'ログイン中...' : 'ログイン'}
+          </button>
+        </form>
+
+        {/* ▼▼▼ 2. ここに新規登録へのリンクを追加 ▼▼▼ */}
+        <p className="text-center text-sm text-gray-400 mt-6">
+          アカウントをお持ちでないですか？{' '}
+          <Link href="/auth/register" className="text-blue-400 hover:underline">
+            新規登録
+          </Link>
+        </p>
+      </div>
     </div>
-  );
-}
+  )
+};
