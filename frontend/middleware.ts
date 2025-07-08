@@ -51,5 +51,6 @@ export const config = {
 	'/home/:path*',
     '/users/:path*',
 	'/call/:path*',
+	'/',
   ],
 };
