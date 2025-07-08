@@ -1,16 +1,22 @@
 'use client';
 
-import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
-import { useState } from 'react';
+import { AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { userPool } from '../userPool';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     const user = new CognitoUser({ Username: username, Pool: userPool });
     const authDetails = new AuthenticationDetails({
       Username: username,
@@ -18,10 +24,21 @@ export default function LoginPage() {
     });
 
     user.authenticateUser(authDetails, {
-      onSuccess: (result) => {
-        console.log('ログイン成功', result);
-        sessionStorage.setItem('username', username); // 簡易保持
-        router.push('/users');
+      onSuccess: async (result) => {
+        const idToken = result.getIdToken().getJwtToken();
+        try{
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({ token: idToken })
+          });
+          if (!response.ok) throw new Error('APIでの認証設定に失敗');
+          
+          router.push('/dashboard');
+        } catch(apiError: any){
+          setError(apiError.message);
+          setIsLoading(false);
+        }
       },
       onFailure: (err) => {
         alert('ログイン失敗: ' + err.message);
