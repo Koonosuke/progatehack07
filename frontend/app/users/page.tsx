@@ -1,19 +1,46 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const dummyUsers = [
-  { name: 'kishi', role: '聴者' },
-  { name: 'taa', role: 'ろう者' },
-  { name: 'suzu', role: 'ろう者' },
-  { name: 'yuki', role: '聴者' },
-];
+//アイテム型定義
+interface User{
+  userId: string;
+  displayName: string;
+  userType: string;
+  email: string;
+  createdAt: string;
+}
+
+const API_ENDPOINT = `${process.env.NEXT_PUBLIC_API_BASE_URL}/users`;
 
 export default function UsersPage() {
   const router = useRouter();
 
-  const [currentUser, setCurrentUser] = useState('自分の名前を入力'); // 後でCognito連携時に自動化予定
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading,setIsLoading] = useState(true);
+  const [error, setError] = useState<String | null>(null);
+
+  const [currentUser, setCurrentUser] = useState('自分の名前を入力');
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(API_ENDPOINT);
+        if (!response.ok){
+          throw new Error('データの取得に失敗しました');
+        }
+        const data: User[] = await response.json();
+        setUsers(data);
+      } catch (err){
+        setError(err instanceof Error ? err.message : '不明なエラー');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  },[]);
 
   const handleInvite = (targetUser: string) => {
     const roomId = `${currentUser}_${targetUser}`;
@@ -36,17 +63,17 @@ export default function UsersPage() {
       </div>
 
       <ul className="space-y-4">
-        {dummyUsers.map((user) => (
+        {users.map((user) => (
           <li
-            key={user.name}
+            key={user.userId}
             className="flex items-center justify-between bg-gray-800 p-4 rounded-lg shadow-md"
           >
             <div>
-              <div className="text-lg font-semibold">{user.name}</div>
-              <div className="text-sm text-gray-400">{user.role}</div>
+              <div className="text-lg font-semibold">{user.displayName}</div>
+              <div className="text-sm text-gray-400">{user.userType}</div>
             </div>
             <button
-              onClick={() => handleInvite(user.name)}
+              onClick={() => handleInvite(user.displayName)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
             >
               招待
