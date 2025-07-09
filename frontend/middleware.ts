@@ -49,7 +49,7 @@ export const config = {
    */
   matcher: [
 	'/home/:path*',
-    '/users/:path*',
+  '/users/:path*',
 	'/call/:path*',
 	'/',
   ],
