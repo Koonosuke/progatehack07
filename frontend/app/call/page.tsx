@@ -55,7 +55,7 @@ export default function CallPage() {
 
 const holistic = new (window as any).Holistic({
   locateFile: (file: string) =>
-    `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1675471629/${file}`,
+    `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
 });
 
 
