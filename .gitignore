@@ -22,5 +22,11 @@ __pycache__/
 .vscode/
 
 
+backend/venv310/
+backend/__pycache__/
+backend/*.h5
+backend/model/
+frontend/public/mediapipe/
+
 
 
