@@ -64,6 +64,8 @@ export default function CallPage() {
         });
 
       //バージョン固定
+      const holisticVersion = "0.5.1635989137";
+      const drawingUtilsVersion = "0.3.1620248257";
 
       //スクリプト読み込み
       await Promise.all([
