@@ -78,7 +78,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
             if data.get("type") == "leave":
                 leave_message = json.dumps({"type": "left", "user": user_name})
                 for conn, _ in rooms.get(room_id, []):
-                    await conn.send_text(leave_message)
+                    if conn != websocket:
+                        await conn.send_text(leave_message)
                 break
 
             alive_conns = rooms.get(room_id, [])
@@ -102,8 +103,10 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
 # --------------------------
 
 # モデル・ラベル読み込み（グローバルで1回）
+"""
 MODEL_PATH = os.path.join("model", "sign_lstm_model_126d.h5")
 model = tf.keras.models.load_model(MODEL_PATH)
+"""
 
 with open("WLASL_v0.3.json", "r") as f:
     data = json.load(f)
@@ -142,6 +145,7 @@ def health():
 def root():
     return {"status": "ok"}
 
+"""
 @app.post("/predict")
 def predict_sign(data: KeypointSequence):
     # 入力検証
@@ -159,3 +163,5 @@ def predict_sign(data: KeypointSequence):
         "label": label_names[predicted_class],
         "confidence": confidence
     }
+
+"""
