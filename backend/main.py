@@ -98,6 +98,31 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
         else:
             rooms.pop(room_id, None)
 
+
+# --------------------------
+# チャット用 WebSocket
+# --------------------------
+chat_rooms: Dict[str, List[WebSocket]] = {}
+
+@app.websocket("/ws/chat/{room_id}")
+async def chat_endpoint(websocket: WebSocket, room_id: str):
+    await websocket.accept()
+    if room_id not in chat_rooms:
+        chat_rooms[room_id] = []
+    chat_rooms[room_id].append(websocket)
+
+    try:
+        while True:
+            message = await websocket.receive_text()
+            # ルーム内の全員に送信
+            for ws in chat_rooms[room_id]:
+                if ws != websocket:
+                    await ws.send_text(message)
+    except WebSocketDisconnect:
+        chat_rooms[room_id].remove(websocket)
+        if not chat_rooms[room_id]:
+            del chat_rooms[room_id]
+
 # --------------------------
 # 手話推論エンドポイント
 # --------------------------
