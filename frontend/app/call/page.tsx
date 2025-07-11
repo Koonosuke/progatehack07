@@ -198,9 +198,9 @@ const handleStartInference = () => {
     setStarted(true);
 
     const iceServers = [
-      {urls: "stun:stun.l.google.con:19302"},
+      {urls: "stun:stun.l.google.com:19302"},
       {
-        urls: "",
+        urls: "turn:54.188.61.175:3478",
         username: "testuser",
         credential: "testpass",
       },
@@ -251,12 +251,19 @@ const handleStartInference = () => {
         switch (data.type) {
           case "userList":
             setUsers(data.users);
-            if (data.users.length > 1 && !pc.current?.currentRemoteDescription) {
-              isOfferer = true;
-              const offer = await pc.current.createOffer();
-              await pc.current.setLocalDescription(offer);
-              ws.current?.send(JSON.stringify(offer));
-            }
+            if (data.users.length === 1 && pc.current && !isOfferer) {
+  isOfferer = true;
+  const offer = await pc.current.createOffer();
+  await pc.current.setLocalDescription(offer);
+  ws.current?.send(JSON.stringify(offer));
+}
+
+            // if (data.users.length > 1 && !pc.current?.currentRemoteDescription) {
+            //   isOfferer = true;
+            //   const offer = await pc.current.createOffer();
+            //   await pc.current.setLocalDescription(offer);
+            //   ws.current?.send(JSON.stringify(offer));
+            // }
             break;
           case "offer":
             if (!isOfferer) {
