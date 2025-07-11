@@ -1,3 +1,4 @@
+// CallPage.tsx（MediaPipe統合版
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,10 +7,15 @@ import { useEffect, useRef, useState } from "react";
 export default function CallPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideo = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const [started, setStarted] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [isCollecting, setIsCollecting] = useState(false);
+  const landmarkBuffer = useRef<number[][]>([]);
+  const isCollectingRef = useRef(false);
   const router = useRouter();
   const [roomId, setRoomId] = useState("default");
   const [userName, setUserName] = useState("");
@@ -139,6 +145,111 @@ export default function CallPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const loadScripts = async () => {
+      const loadScript = (src: string): Promise<void> =>
+        new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.onload = () => resolve();
+          document.body.appendChild(script);
+        });
+
+      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js');
+      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js');
+      setLoaded(true);
+    };
+
+    loadScripts();
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+
+const holistic = new (window as any).Holistic({
+  locateFile: (file: string) =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+});
+
+
+    holistic.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      refineFaceLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+
+    holistic.onResults((results: any) => {
+      const canvasCtx = canvasRef.current?.getContext('2d');
+      if (!canvasCtx || !results.image) return;
+
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, 640, 480);
+      canvasCtx.drawImage(results.image, 0, 0, 640, 480);
+
+      const drawConnectors = (window as any).drawConnectors;
+      const drawLandmarks = (window as any).drawLandmarks;
+
+      if (results.rightHandLandmarks) {
+        drawConnectors(canvasCtx, results.rightHandLandmarks, (window as any).HAND_CONNECTIONS, {
+          color: '#00FF00', lineWidth: 2,
+        });
+        drawLandmarks(canvasCtx, results.rightHandLandmarks, { color: '#FF0000', lineWidth: 1 });
+      }
+
+      if (results.leftHandLandmarks) {
+        drawConnectors(canvasCtx, results.leftHandLandmarks, (window as any).HAND_CONNECTIONS, {
+          color: '#0000FF', lineWidth: 2,
+        });
+        drawLandmarks(canvasCtx, results.leftHandLandmarks, { color: '#FFFF00', lineWidth: 1 });
+      }
+
+      if (isCollectingRef.current) {
+        if (landmarkBuffer.current.length < 30) {
+          const points = [...(results.rightHandLandmarks ?? []), ...(results.leftHandLandmarks ?? [])];
+          const frameData = points.flatMap((p) => [p.x, p.y, p.z]);
+          landmarkBuffer.current.push(frameData);
+        }
+
+        if (landmarkBuffer.current.length === 30) {
+          fetch('http://localhost:8000/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sequence: landmarkBuffer.current })
+          })
+            .then(res => res.json())
+            .then(data => {
+              alert(`予測: ${data.label}（信頼度: ${Math.round(data.confidence * 100)}%）`);
+            })
+            .catch(err => console.error('推論失敗:', err))
+            .finally(() => {
+              landmarkBuffer.current = [];
+              isCollectingRef.current = false;
+              setIsCollecting(false);
+            });
+        }
+      }
+
+      canvasCtx.restore();
+    });
+
+    const inferenceLoop = () => {
+      if (localVideo.current) {
+        holistic.send({ image: localVideo.current });
+        requestAnimationFrame(inferenceLoop);
+      }
+    };
+    inferenceLoop();
+  }, [loaded]);
+
+  const startInference = () => {
+    landmarkBuffer.current = [];
+    setIsCollecting(true);
+    isCollectingRef.current = true;
+  };
+
   const getWebSocketURL = (): string => {
     const protocol = location.protocol === "https:" ? "wss" : "ws";
     const host = process.env.NEXT_PUBLIC_FASTAPI_HOST || location.hostname;
@@ -163,6 +274,7 @@ export default function CallPage() {
     stream.getTracks().forEach((track) => pc.current?.addTrack(track, stream));
 
     pc.current.ontrack = (event) => {
+
       if (remoteVideo.current && !remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = event.streams[0];
       }
@@ -267,10 +379,7 @@ export default function CallPage() {
         />
       </div>
       {!started && (
-        <button
-          onClick={start}
-          className="mt-8 bg-blue-600 hover:bg-blue-700 transition px-6 py-3 rounded-lg font-semibold text-lg"
-        >
+        <button onClick={start} className="mt-8 bg-blue-600 hover:bg-blue-700 transition px-6 py-3 rounded-lg font-semibold text-lg">
           通話を開始する
         </button>
       )}
