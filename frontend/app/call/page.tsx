@@ -156,7 +156,7 @@ export default function CallPage() {
   //手話予想
   const predictAction = () => {
     const payload = { sequence: landmarkBuffer.current };
-    fetch("http://localhost:8000/predict", {
+    fetch("https://bag-variables-concentration-blocking.trycloudflare.com/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json"},
       body: JSON.stringify(payload),
@@ -197,14 +197,15 @@ const handleStartInference = () => {
 
     setStarted(true);
 
-    const iceServers = [
-      {urls: "stun:stun.l.google.com:19302"},
-      {
-        urls: "turn:54.188.61.175:3478",
-        username: "testuser",
-        credential: "testpass",
-      },
-    ];
+const iceServers = [
+  { urls: "stun:stun.l.google.com:19302" },
+  {
+    urls: process.env.NEXT_PUBLIC_TURN_URL!,
+    username: process.env.NEXT_PUBLIC_TURN_USERNAME!,
+    credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL!,
+  },
+];
+
     pc.current = new RTCPeerConnection({
       iceServers: iceServers,
     });
