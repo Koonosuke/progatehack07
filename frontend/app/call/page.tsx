@@ -117,11 +117,25 @@ export default function CallPage() {
     };
     //推論開始
     const startInferenceLoop = () => {
-      if (!videoRef.current || !holisticRef.current) return;
       const processFrame = async () => {
-        await holisticRef.current.send({ image: videoRef.current });
-        requestAnimationFrame(processFrame);
+        const video = videoRef.current;
+        const holistic = holisticRef.current;
+
+        // 安全チェック：videoとholisticが存在し、映像準備ができているか
+        if (!video || video.readyState < 2 || !holistic) {
+          requestAnimationFrame(processFrame); // 次のフレームで再試行
+          return;
+        }
+
+        try {
+          await holistic.send({ image: video });
+        } catch (err) {
+          console.error("MediaPipe送信エラー:", err);
+        }
+
+        requestAnimationFrame(processFrame); // 次のフレーム処理をスケジュール
       };
+
       processFrame();
     };
 
