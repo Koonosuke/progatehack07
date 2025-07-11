@@ -30,6 +30,8 @@ export default function CallPage() {
   const [isCollecting, setIsCollecting] = useState(false);
   const [roomId, setRoomId] = useState("default");
   const [predictedWords, setPredictedWords] = useState<string[]>([]);
+  const [llmResponse, setLlmResponse] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [userName, setUserName] = useState("");
 
   //ルームID&ユーザ名取得
@@ -196,6 +198,40 @@ const handleStartInference = () => {
     setIsCollecting(true);
   };
 
+//文章生成(Ollama API呼び出し)
+const handleGenerateText = async () => {
+  if (predictedWords.length === 0){
+    alert("認識された単語がありません．");
+    return;
+  }
+
+  setIsGenerating(true);
+  setLlmResponse('');
+
+  try{
+    const response = await fetch('/api/llm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ words: predictedWords }),
+    });
+
+    if (!response.ok){
+      throw new Error('APIからの応答エラー');
+    }
+
+    const data = await response.json();
+    setLlmResponse(data.generatedText);
+
+  } catch (error){
+    console.error("文章生成に失敗しました．", error);
+    setLlmResponse("エラー: 文章を生成できませんでした.");
+  } finally{
+    setIsGenerating(false);
+  }
+}
+
 // WebRTCの接続を開始
   const start = async () => {
     if (!videoRef.current?.srcObject) {
@@ -346,6 +382,24 @@ return (
               </span>
             ))}
             </div>
+            {/*文章生成ボタン*/}
+            <div className="text-center mt-6">
+              <button
+              onClick={handleGenerateText}
+              disabled={isGenerating}
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray^500 text-white font-bold py-2 px-6 rounded-lg transition-all"
+              />
+              {isGenerating ? "生成中..." : "文章を生成する"}
+            </div>
+        </div>
+      )}
+      {/*LLMからの応答表示エリアを追加*/}
+      {(isGenerating || llmResponse) && (
+        <div className="mt-6 w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-3">生成された文章</h2>
+          <div className="bg-gray-900 p-4 rounded-md min-h-[100px] whitespaec-pre-wrap">
+            {isGenerating ? <p className="text-gray-400">AIが文章を生成しています...</p> : <p>{llmResponse}</p>}
+        </div>
         </div>
       )}
       {users.length > 0 && (
