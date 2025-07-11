@@ -22,10 +22,6 @@ export default function CallPage() {
 
   const holisticRef = useRef<any>(null);
 
-  const landmarkBuffer = useRef<number[][]>([]);
-  const [isCollecting, setIsCollecting] = useState(false);
-  const isCollectingRef = useRef(false);
-
   const startInference = () => {
     landmarkBuffer.current = [];
     setIsCollecting(true);
@@ -236,19 +232,13 @@ const holistic = new (window as any).Holistic({
     });
 
     const inferenceLoop = () => {
-      if (localVideo.current) {
-        holistic.send({ image: localVideo.current });
+      if (videoRef.current) {
+        holistic.send({ image: videoRef.current });
         requestAnimationFrame(inferenceLoop);
       }
     };
     inferenceLoop();
   }, [loaded]);
-
-  const startInference = () => {
-    landmarkBuffer.current = [];
-    setIsCollecting(true);
-    isCollectingRef.current = true;
-  };
 
   const getWebSocketURL = (): string => {
     const protocol = location.protocol === "https:" ? "wss" : "ws";
