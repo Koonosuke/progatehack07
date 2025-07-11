@@ -14,4 +14,17 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Python virtual environment
+venv/
+__pycache__/
+
+# VSCode
+.vscode/
+
+
+backend/venv310/
+backend/__pycache__/
+backend/*.h5
+backend/model/
+frontend/public/mediapipe/
 backend/venv310/

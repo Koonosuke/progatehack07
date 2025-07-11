@@ -71,3 +71,9 @@ Claudeflareで生成したhttpsのフロントエンドのリンクを用意
 | UIの強化 | 通話状態の表示（例：接続中、切断済み、相手未接続など） |
 | 本番環境へのデプロイ | FastAPI + nginx + Let's Encrypt + Next.js（Vercel など）
 
+
+py -3.10 -m venv venv
+.\venv\Scripts\Activate
+pip install -r requirements.txt
+
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
