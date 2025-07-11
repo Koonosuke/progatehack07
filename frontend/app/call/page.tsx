@@ -60,11 +60,12 @@ export default function CallPage() {
 
       //バージョン固定
       const holisticVersion = "0.5.1635989137";
+      const drawingUtilsVersion = "0.3.1620248257";
 
       //スクリプト読み込み
       await Promise.all([
         loadScript(`https://cdn.jsdelivr.net/npm/@mediapipe/holistic@${holisticVersion}/holistic.js`),
-        loadScript(`https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@${holisticVersion}/drawing_utils.js`),
+        loadScript(`https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@${drawingUtilsVersion}/drawing_utils.js`),
       ]);
 
       const Holistic = (window as any).Holistic;
