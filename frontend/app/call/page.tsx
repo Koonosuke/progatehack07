@@ -58,10 +58,13 @@ export default function CallPage() {
         document.body.appendChild(script);
       });
 
+      //バージョン固定
+      const holisticVersion = "0.5.1635989137";
+
       //スクリプト読み込み
       await Promise.all([
-        loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js'),
-        loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js'),
+        loadScript(`https://cdn.jsdelivr.net/npm/@mediapipe/holistic@${holisticVersion}/holistic.js`),
+        loadScript(`https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@${holisticVersion}/drawing_utils.js`),
       ]);
 
       const Holistic = (window as any).Holistic;
@@ -72,7 +75,7 @@ export default function CallPage() {
 
       //Holisticインスタンスの作成
       const holistic = new Holistic({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@${holisticVersion}/${file}`,
       });
       holistic.setOptions({
         modelComplexity: 1,
@@ -209,7 +212,7 @@ const handleGenerateText = async () => {
   setLlmResponse('');
 
   try{
-    const response = await fetch('/api/llm', {
+    const response = await fetch('/web/api/llm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

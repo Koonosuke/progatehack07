@@ -29,14 +29,13 @@ export async function POST(request: Request){
 				stream: false,
 			}),
 		});
-
 		if(!response.ok){
 			const errorText = await response.text();
 			throw new Error(`Ollama APIからのエラー: ${response.statusText}-${errorText}`);
 		}
 
 		const ollamaData = await response.json();
-		return NextResponse.json({ generateedText: ollamaData.response});
+		return NextResponse.json({ generatedText: ollamaData.response});
 	} catch (error){
 		console.error('LLM API Error: ', error);
 		return NextResponse.json({ error: 'サーバー内部でエラーが発生しました。'}, { status: 500});
