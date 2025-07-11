@@ -29,6 +29,7 @@ export default function CallPage() {
   const [loaded, setLoaded] = useState(false);
   const [isCollecting, setIsCollecting] = useState(false);
   const [roomId, setRoomId] = useState("default");
+  const [predictedWords, setPredictedWords] = useState<string[]>([]);
   const [userName, setUserName] = useState("");
 
   //ルームID&ユーザ名取得
@@ -164,7 +165,13 @@ export default function CallPage() {
   })
     .then((res) => res.json())
     .then((data) => {
-      alert(`予測: ${data.label}(信頼度: ${Math.round(data.confidence * 100)}%)`);
+      //alert(`予測: ${data.label}(信頼度: ${Math.round(data.confidence * 100)}%)`);
+      const newWord = data.label;
+      setPredictedWords(prevWords => {
+        const wordSet = new Set(prevWords);
+        wordSet.add(newWord);
+        return Array.from(wordSet);
+      });
     })
     .catch((err) => console.error("Prediction request failed:", err))
     .finally(() => {
@@ -329,7 +336,18 @@ return (
           </>
         )}
       </div>
-
+      {predictedWords.length > 0 && (
+        <div className="mt-8 w-full max-w-4xl bg-gray-800 p-4 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-3 text-center">出力単語リスト</h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {predictedWords.map((word, index) => (
+              <span key={index} className="bg-indigo-600 px-4 py-2 rounded-full text-base font-medium">
+                {word}
+              </span>
+            ))}
+            </div>
+        </div>
+      )}
       {users.length > 0 && (
         <div className="mt-10 bg-gray-800 p-4 rounded-lg shadow-md w-full max-w-md">
           <h2 className="text-xl font-semibold mb-2">接続中のユーザー:</h2>
