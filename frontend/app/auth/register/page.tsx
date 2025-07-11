@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const API_ENDPOINT = process.env.NEXT_PUBLIC_REGISTER_API_URL
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export default function RegisterPage(){
 	const [email, setEmail] = useState('');
