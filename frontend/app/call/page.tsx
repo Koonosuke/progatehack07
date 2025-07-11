@@ -155,12 +155,13 @@ export default function CallPage() {
 
   //手話予想
   const predictAction = () => {
+    const baseURL = `https://${process.env.NEXT_PUBLIC_FASTAPI_HOST}`;
     const payload = { sequence: landmarkBuffer.current };
-    fetch("https://bag-variables-concentration-blocking.trycloudflare.com/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json"},
-      body: JSON.stringify(payload),
-    })
+  fetch(`${baseURL}/predict`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+  })
     .then((res) => res.json())
     .then((data) => {
       alert(`予測: ${data.label}(信頼度: ${Math.round(data.confidence * 100)}%)`);
