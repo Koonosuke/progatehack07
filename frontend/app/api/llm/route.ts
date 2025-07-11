@@ -15,7 +15,7 @@ export async function POST(request: Request){
 			return NextResponse.json({error: '単語リストが無効です。'}, { status: 400});
 		}
 		//プロンプト
-		const prompt = `あなたは今一対一通話のサポーターです．対象者はろう者です．対象者がした手話から以下の単語リストを生成しました．\n\n単語リスト: ${words.join(',')}\n\n手話の特性を考慮しつつ，単語リストを参考に文脈を補ってなめらかな文章を生成してください。\n\n<Ollama>`
+		const prompt = `あなたは今一対一通話のサポーターです．対象者はろう者です．対象者がした手話から以下の単語リストを生成しました．\n\n単語リスト: ${words.join(',')}\n\n手話の特性を考慮しつつ，単語リストを参考に文脈を補ってなめらかな文章を生成してください。ただし推測した文章以外は出力しないでください．\n例: "このユーザは「飲み会にいこう」と言っています\n →飲み会に行こう "\n\n<Ollama>`
 
 		//APIリクエスト送信
 		const response = await fetch(OLLAMA_API_URL, {
