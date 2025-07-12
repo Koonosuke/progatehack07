@@ -365,12 +365,19 @@ export default function CallPage() {
         switch (data.type) {
           case "userList":
             setUsers(data.users);
-            if (data.users.length === 1 && pc.current && !isOfferer) {
-              isOfferer = true;
-              const offer = await pc.current.createOffer();
-              await pc.current.setLocalDescription(offer);
-              ws.current?.send(JSON.stringify(offer));
-            }
+            // if (data.users.length === 1 && pc.current && !isOfferer) {
+            //   isOfferer = true;
+            //   const offer = await pc.current.createOffer();
+            //   await pc.current.setLocalDescription(offer);
+            //   ws.current?.send(JSON.stringify(offer));
+            // }
+            if (data.users.length >= 2 && userName === data.users.sort()[0] && !pc.current?.localDescription) {
+  isOfferer = true;
+  const offer = await pc.current.createOffer();
+  await pc.current.setLocalDescription(offer);
+  ws.current?.send(JSON.stringify(offer));
+}
+
 
             // if (data.users.length > 1 && !pc.current?.currentRemoteDescription) {
             //   isOfferer = true;
@@ -389,14 +396,26 @@ export default function CallPage() {
               ws.current?.send(JSON.stringify(pc.current?.localDescription));
             }
             break;
-          case "answer":
-            await pc.current?.setRemoteDescription(
-              new RTCSessionDescription(data)
-            );
-            while (iceCandidateQueue.length > 0) {
-              await pc.current?.addIceCandidate(iceCandidateQueue.shift()!);
-            }
-            break;
+
+            case "answer":
+  if (!pc.current) return;
+  if (pc.current.signalingState === "stable") {
+    console.warn("Already in stable state. Skipping redundant answer.");
+    return;
+  }
+  if (!pc.current.remoteDescription) {
+    await pc.current.setRemoteDescription(
+      new RTCSessionDescription(data)
+    );
+    while (iceCandidateQueue.length > 0) {
+      await pc.current.addIceCandidate(iceCandidateQueue.shift()!);
+    }
+  } else {
+    console.warn("RemoteDescription already set. Skipping.");
+  }
+  break;
+
+
           case "left":
             alert(`${data.user} が通話を退出しました。`);
             if (remoteVideo.current) remoteVideo.current.srcObject = null;
