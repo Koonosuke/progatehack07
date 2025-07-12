@@ -50,8 +50,12 @@ export default function CallPage() {
     }
   }, []);
 
+  const isInitialized = useRef(false);
+
   //初期化処理
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
     //MediaPipeとカメラ初期化
     const initializeMediaPipe = async () => {
       const loadScript = (src: string) =>
@@ -70,10 +74,10 @@ export default function CallPage() {
       //スクリプト読み込み
       await Promise.all([
         loadScript(
-          `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js`
+          `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@${holisticVersion}/holistic.js`
         ),
         loadScript(
-          `https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js`
+          `https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@${drawingUtilsVersion}/drawing_utils.js`
         ),
       ]);
 
@@ -86,7 +90,7 @@ export default function CallPage() {
       //Holisticインスタンスの作成
       const holistic = new Holistic({
         locateFile: (file: string) =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+          `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@${holisticVersion}/${file}`,
       });
       holistic.setOptions({
         modelComplexity: 1,
@@ -100,6 +104,8 @@ export default function CallPage() {
       //処理結果
       holistic.onResults(onResults);
       holisticRef.current = holistic;
+
+      await holistic.initialize();
 
       //カメラを起動
       try {
@@ -270,7 +276,7 @@ export default function CallPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ words: predictedWords }),
+        body: JSON.stringify({ words: predictedWords, chatHistory: chatLog }),
       });
 
       if (!response.ok) {
@@ -279,6 +285,14 @@ export default function CallPage() {
 
       const data = await response.json();
       setLlmResponse(data.generatedText);
+      //チャットに結果を送信
+      if (chatSocket.current && chatSocket.current.readyState === WebSocket.OPEN){
+        const message=`AI解説: ${data.generatedText}`;
+        chatSocket.current.send(message);
+        setChatLog((prev) => [...prev, message]);
+      }
+
+      setPredictedWords([]);
     } catch (error) {
       console.error("文章生成に失敗しました．", error);
       setLlmResponse("エラー: 文章を生成できませんでした.");
@@ -351,12 +365,19 @@ export default function CallPage() {
         switch (data.type) {
           case "userList":
             setUsers(data.users);
-            if (data.users.length === 1 && pc.current && !isOfferer) {
-              isOfferer = true;
-              const offer = await pc.current.createOffer();
-              await pc.current.setLocalDescription(offer);
-              ws.current?.send(JSON.stringify(offer));
-            }
+            // if (data.users.length === 1 && pc.current && !isOfferer) {
+            //   isOfferer = true;
+            //   const offer = await pc.current.createOffer();
+            //   await pc.current.setLocalDescription(offer);
+            //   ws.current?.send(JSON.stringify(offer));
+            // }
+            if (data.users.length >= 2 && userName === data.users.sort()[0] && !pc.current?.localDescription) {
+  isOfferer = true;
+  const offer = await pc.current.createOffer();
+  await pc.current.setLocalDescription(offer);
+  ws.current?.send(JSON.stringify(offer));
+}
+
 
             // if (data.users.length > 1 && !pc.current?.currentRemoteDescription) {
             //   isOfferer = true;
@@ -375,14 +396,26 @@ export default function CallPage() {
               ws.current?.send(JSON.stringify(pc.current?.localDescription));
             }
             break;
-          case "answer":
-            await pc.current?.setRemoteDescription(
-              new RTCSessionDescription(data)
-            );
-            while (iceCandidateQueue.length > 0) {
-              await pc.current?.addIceCandidate(iceCandidateQueue.shift()!);
-            }
-            break;
+
+            case "answer":
+  if (!pc.current) return;
+  if (pc.current.signalingState === "stable") {
+    console.warn("Already in stable state. Skipping redundant answer.");
+    return;
+  }
+  if (!pc.current.remoteDescription) {
+    await pc.current.setRemoteDescription(
+      new RTCSessionDescription(data)
+    );
+    while (iceCandidateQueue.length > 0) {
+      await pc.current.addIceCandidate(iceCandidateQueue.shift()!);
+    }
+  } else {
+    console.warn("RemoteDescription already set. Skipping.");
+  }
+  break;
+
+
           case "left":
             alert(`${data.user} が通話を退出しました。`);
             if (remoteVideo.current) remoteVideo.current.srcObject = null;
@@ -543,9 +576,9 @@ export default function CallPage() {
             <button
               onClick={handleGenerateText}
               disabled={isGenerating}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray^500 text-white font-bold py-2 px-6 rounded-lg transition-all"
-            />
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray^500 text-white font-bold py-2 px-6 rounded-lg transition-all">
             {isGenerating ? "生成中..." : "文章を生成する"}
+            </button>
           </div>
         </div>
       )}
@@ -553,7 +586,7 @@ export default function CallPage() {
       {(isGenerating || llmResponse) && (
         <div className="mt-6 w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-3">生成された文章</h2>
-          <div className="bg-gray-900 p-4 rounded-md min-h-[100px] whitespaec-pre-wrap">
+          <div className="bg-gray-900 p-4 rounded-md min-h-[100px] whitespace-pre-wrap">
             {isGenerating ? (
               <p className="text-gray-400">AIが文章を生成しています...</p>
             ) : (
