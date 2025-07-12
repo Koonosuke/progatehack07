@@ -276,7 +276,7 @@ export default function CallPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ words: predictedWords }),
+        body: JSON.stringify({ words: predictedWords, chatHistory: chatLog }),
       });
 
       if (!response.ok) {
