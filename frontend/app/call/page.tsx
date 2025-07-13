@@ -122,6 +122,7 @@ useEffect(() =>{
       console.log("event", event);
       sendMessage(transcript);
       setChatLog((prev) => [...prev, `You: ${transcript}`]);
+      setIsRecording(false);
     }
     recognition.onerror = (event) => {
       console.error("音声認識エラー:", event.error);
@@ -141,7 +142,7 @@ const toggleRecording = () => {
 
     if (isRecording) {
       recognition.stop();
-      //setIsRecording(false);
+      setIsRecording(false);
       console.log("音声認識停止");
     } else {
       recognition.start();
