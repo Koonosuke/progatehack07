@@ -232,7 +232,7 @@ return (
                   setStarted(true);
                   start();
                 }}
-                className="bg-blue-600 px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                className="bg-[#7DE5ED] px-6 py-3 rounded-lg text-lg hover:bg-[#6cd4dd] text-gray-900 shadow-md"
               >
                 通話を開始する
               </button>
