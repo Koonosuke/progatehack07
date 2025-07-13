@@ -1,9 +1,9 @@
 // app/call/hooks/useWebRTC.ts
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface UseWebRTCProps {
-videoRef: React.RefObject<HTMLVideoElement | null>;
-remoteVideoRef: React.RefObject<HTMLVideoElement | null>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  remoteVideoRef: React.RefObject<HTMLVideoElement | null>;
   userName: string;
   roomId: string;
   setUsers: (users: string[]) => void;
@@ -19,9 +19,42 @@ export const useWebRTC = ({
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
+  // leave関数をuseCallbackでメモ化し、useEffectの依存関係を安定させる
+  const leave = useCallback(() => {
+    // WebSocketで退出を通知
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "leave", user: userName }));
+    }
+
+    // PeerConnectionとWebSocketを閉じる
+    pcRef.current?.close();
+    pcRef.current = null;
+    wsRef.current?.close();
+    wsRef.current = null;
+
+    // ローカルのメディアストリームを停止し、リソースを解放
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    // リモートのビデオ要素をリセット
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+    console.log("WebRTC connection closed and resources released.");
+  }, [userName, videoRef, remoteVideoRef]);
+
+
   const start = async () => {
+    // すでに接続がある場合は一度クリーンアップ
+    if (pcRef.current) {
+        console.log("Existing connection found, cleaning up before starting new one.");
+        leave();
+    }
+
     if (!videoRef.current?.srcObject) {
-      alert("カメラが準備できていません");
+      console.error("カメラが準備できていません");
       return;
     }
 
@@ -57,6 +90,7 @@ export const useWebRTC = ({
     let isOfferer = false;
 
     ws.onopen = () => {
+      console.log("WebSocket connected");
       ws.send(JSON.stringify({ type: "join", user: userName }));
     };
 
@@ -109,39 +143,30 @@ export const useWebRTC = ({
           break;
 
         case "left":
-          alert(`${data.user} が退出しました`);
+          console.log(`${data.user} が退出しました`);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = null;
           }
           break;
       }
     };
+
+    ws.onclose = () => {
+        console.log("WebSocket disconnected");
+    };
+
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+    };
   };
 
-  const leave = () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: "leave", user: userName }));
-    }
+  // コンポーネントがアンマウントされるときにクリーンアップ処理を実行
+  useEffect(() => {
+    return () => {
+      leave();
+    };
+  }, [leave]);
 
-    pcRef.current?.close();
-    pcRef.current = null;
-    wsRef.current?.close();
-    wsRef.current = null;
-
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-  };
-
-  return {
-    start,
-    leave,
-    wsRef,
-    pcRef,
-  };
+  // コンポーネントからは start と leave のみ使用
+  return { start, leave };
 };
