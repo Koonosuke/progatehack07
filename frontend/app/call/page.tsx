@@ -122,7 +122,6 @@ useEffect(() =>{
       console.log("event", event);
       sendMessage(transcript);
       setChatLog((prev) => [...prev, `You: ${transcript}`]);
-      setIsRecording(false);
     }
     recognition.onerror = (event) => {
       console.error("音声認識エラー:", event.error);
@@ -133,17 +132,21 @@ useEffect(() =>{
         setIsRecording(false);
       }
     }
+    recognitionRef.current = recognition;
 },[sendMessage]);
 
 const toggleRecording = () => {
-    if (!recognitionRef.current) return;
+  const recognition = recognitionRef.current;
+    if (!recognition) return;
 
     if (isRecording) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
+      recognition.stop();
+      //setIsRecording(false);
+      console.log("音声認識停止");
     } else {
-      recognitionRef.current.start();
+      recognition.start();
       setIsRecording(true);
+      console.log("音声認識開始");
     }
   };
 /*
