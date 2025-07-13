@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useMediaPipe } from "./hooks/useMediaPipe";
-import { useWebRTC } from "./hooks/useWebRTC";
-import { useChatSocket } from "./hooks/useChatSocket";
 import { ChatBox } from "./components/ChatBox";
 import { UserList } from "./components/UserList";
+import { useChatSocket } from "./hooks/useChatSocket";
+import { useMediaPipe } from "./hooks/useMediaPipe";
+import { useWebRTC } from "./hooks/useWebRTC";
 
 export default function CallPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function CallPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const [started, setStarted] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
@@ -25,6 +26,7 @@ export default function CallPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatLog, setChatLog] = useState<string[]>([]);
   const [chatInput, setChatInput] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
 
   // クエリパラメータから roomId と userName を取得
   useEffect(() => {
@@ -104,6 +106,69 @@ const handleGenerateText = async () => {
   }
 };
 
+//音声認識セットアップ
+useEffect(() =>{
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition){
+    console.warn("音声認識サポート適応外");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "ja-JP";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.onresult = async function (event){
+      const transcript = event.results[0][0].transcript;
+      console.log("event", event);
+      sendMessage(transcript);
+      setChatLog((prev) => [...prev, `You: ${transcript}`]);
+      setIsRecording(false);
+    }
+    recognition.onerror = (event) => {
+      console.error("音声認識エラー:", event.error);
+      setIsRecording(false);
+    }
+    recognition.onend = () =>{
+      if(isRecording){
+        setIsRecording(false);
+      }
+    }
+},[sendMessage]);
+
+const toggleRecording = () => {
+    if (!recognitionRef.current) return;
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
+/*
+const Translator = () => {
+  //テキスト保持
+  const [text, setText] = useState<string>();
+
+  //録音を処理する関数
+  function handleOnRecord(){
+    console.log("録音関数開始");
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.onresult = async function (event){
+      console.log("event", event);
+      const transcript = event.results[0][0].transcript;
+      setText(transcript);
+      //チャットに送信
+      sendMessage(transcript);
+      setChatLog((prev) => [...prev, `You: ${transcript}`]);
+    }
+    recognition.start();
+  }
+}
+*/
+
 return (
   <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col items-center py-8 px-4">
     <h1 className="text-3xl font-bold mb-6">WebRTC 手話認識通話</h1>
@@ -150,6 +215,8 @@ return (
             chatInput={chatInput}
             setChatInput={setChatInput}
             sendChatMessage={sendChatMessage}
+            isRecording={isRecording}
+            toggleRecording={toggleRecording}
           />
         </div>
 
@@ -190,6 +257,8 @@ return (
         </div>
       </div>
     </div>
+{ /*音声認識ボタン*/}
+
 
 {/* 出力単語リスト + 生成ボタン */}
 {predictedWords.length > 0 && (
