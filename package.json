@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@types/dom-speech-recognition": "^0.0.6",
     "amazon-cognito-identity-js": "^6.3.15",
     "cookie": "^1.0.2",
     "jose": "^6.0.11"

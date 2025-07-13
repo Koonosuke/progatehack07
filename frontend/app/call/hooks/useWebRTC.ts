@@ -124,7 +124,18 @@ export const useWebRTC = ({
     }
 
     pcRef.current?.close();
+    pcRef.current = null;
     wsRef.current?.close();
+    wsRef.current = null;
+
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
   };
 
   return {

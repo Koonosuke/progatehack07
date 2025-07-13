@@ -8,6 +8,8 @@ interface ChatBoxProps {
   chatInput: string;
   setChatInput: (value: string) => void;
   sendChatMessage: () => void;
+  isRecording: boolean;
+  toggleRecording: () => void;
 }
 
 export function ChatBox({
@@ -16,6 +18,8 @@ export function ChatBox({
   chatInput,
   setChatInput,
   sendChatMessage,
+  isRecording,
+  toggleRecording,
 }: ChatBoxProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [lastAnimatedIndex, setLastAnimatedIndex] = useState<number | null>(null);
@@ -78,6 +82,29 @@ export function ChatBox({
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold text-lg"
         >
           送信
+        </button>
+        <button
+          onClick={toggleRecording}
+          title={isRecording ? "録音を停止" : "音声入力"}
+          className={`p-3 rounded-lg text-white transition-colors duration-200 ${
+            isRecording
+              ? "bg-red-600 hover:bg-red-700 animate-pulse"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+        >
+          {isRecording ? (
+            // 停止アイコン
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path d="M6 6h12v12H6z"></path>
+            </svg>
+          ) : (
+            // マイクアイコン
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="22"></line>
+            </svg>
+          )}
         </button>
       </div>
     </div>
