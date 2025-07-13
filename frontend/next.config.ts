@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  basePath: "/web",
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  basePath: '/web',
+  output: 'standalone',
 };
 
-export default nextConfig;
+module.exports = nextConfig;

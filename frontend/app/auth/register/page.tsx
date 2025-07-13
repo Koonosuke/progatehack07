@@ -1,6 +1,7 @@
 "use client";
 
 import RippleBackground from "@/components/hamon";
+import SignChatHeader from "@/components/SignChatHeader"; // ←追加
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,7 +22,6 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
 
-    //エンドポイントチェック
     if (!API_ENDPOINT) {
       setError("APIエンドポイントが設定されていません．");
       setIsLoading(false);
@@ -54,12 +54,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen  text-white flex items-center justify-center p-4">
+    <div className="min-h-screen text-white flex items-center justify-center p-4 relative">
       <RippleBackground />
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+      <SignChatHeader /> {/* ←追加 */}
+
+      <div className="bg-gray-800/80 backdrop-blur-md p-8 rounded-lg shadow-lg w-full max-w-md mt-48">
         <h1 className="text-3xl font-bold mb-6 text-center">新規登録</h1>
         <form onSubmit={handleSubmit}>
-          {/* 表示名 */}
+          {/* 各入力欄 */}
           <div className="mb-4">
             <label className="block mb-2 text-sm font-bold">表示名</label>
             <input
@@ -70,11 +72,8 @@ export default function RegisterPage() {
               className="bg-gray-700 px-4 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          {/* メールアドレス */}
           <div className="mb-4">
-            <label className="block mb-2 text-sm font-bold">
-              メールアドレス
-            </label>
+            <label className="block mb-2 text-sm font-bold">メールアドレス</label>
             <input
               type="email"
               value={email}
@@ -83,7 +82,6 @@ export default function RegisterPage() {
               className="bg-gray-700 px-4 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          {/* パスワード */}
           <div className="mb-4">
             <label className="block mb-2 text-sm font-bold">パスワード</label>
             <input
@@ -94,11 +92,8 @@ export default function RegisterPage() {
               className="bg-gray-700 px-4 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          {/* ユーザータイプ */}
           <div className="mb-6">
-            <label className="block mb-2 text-sm font-bold">
-              ユーザータイプ
-            </label>
+            <label className="block mb-2 text-sm font-bold">ユーザータイプ</label>
             <select
               value={userType}
               onChange={(e) => setUserType(e.target.value)}
@@ -109,24 +104,20 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded w-full transition-colors disabled:opacity-50"
+            className="bg-[#7DE5ED] hover:bg-[#6cd4dd] text-gray-900 font-bold px-4 py-2 rounded w-full transition-all shadow-md"
           >
             {isLoading ? "登録中..." : "登録する"}
           </button>
         </form>
+
         <p className="text-center text-sm text-gray-400 mt-6">
           すでにアカウントをお持ちですか？{" "}
-          <Link
-            href="/web/auth/login"
-            className="text-blue-400 hover:underline"
-          >
+          <Link href="/auth/login" className="text-blue-400 hover:underline">
             ログイン
           </Link>
         </p>
