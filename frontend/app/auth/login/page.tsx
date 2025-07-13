@@ -2,7 +2,6 @@
 "use client";
 
 import RippleBackground from "@/components/hamon";
-import SignChatHeader from "@/components/SignChatHeader"; // ← ✅ 追加
 import { AuthenticationDetails, CognitoUser } from "amazon-cognito-identity-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -116,9 +115,7 @@ export default function LoginPage() {
             >
               {isLoading ? "設定中..." : "パスワードを設定"}
             </button>
-            {error && (
-              <p className="text-red-400 mt-4 text-center">{error}</p>
-            )}
+            {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
           </form>
         </div>
       </div>
@@ -129,9 +126,25 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen text-white flex items-center justify-center">
       <RippleBackground />
-      <SignChatHeader /> {/* ← ✅ ここで使う！ */}
+      {/* ← ✅ ここで使う！ */}
+      <h1
+        className="absolute top-24 left-1/2 transform -translate-x-1/2 
+                 text-cyan-300 font-fancy font-extrabold text-[80px]
+                 drop-shadow-[0_0_15px_rgba(173,216,230,0.7)] 
+                 flex justify-center gap-2"
+      >
+        {"Sign Chat".split("").map((char, i) => (
+          <span
+            key={i}
+            className="inline-block animate-bounce-slow"
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
+            {char}
+          </span>
+        ))}
+      </h1>
 
-      <div className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md mt-48">
+      <div className="bg-gray-800/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md">
         <h1 className="text-3xl font-bold mb-6 text-center">ログイン</h1>
         <form onSubmit={handleLogin}>
           <div className="mb-5">

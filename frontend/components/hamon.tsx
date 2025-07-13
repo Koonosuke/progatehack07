@@ -34,16 +34,13 @@ export default function RippleBackground() {
       });
     };
 
-    addRipple();
-    const intervalId = setInterval(addRipple, 800);
-
     let animationFrameId: number;
+    let intervalId: NodeJS.Timeout;
 
-    function draw() {
-      if (!ctx) return;
+    const draw = () => {
+      if (!ctx || document.hidden) return; // 非表示なら描画しない
 
-      // 背景を塗りつぶし（透明感を維持）
-      ctx.fillStyle = "rgba(0, 0, 30, 0.2)";
+      ctx.fillStyle = "rgba(59, 42, 120, 1)";
       ctx.fillRect(0, 0, width, height);
 
       ripples.forEach((ripple, i) => {
@@ -62,23 +59,41 @@ export default function RippleBackground() {
       });
 
       animationFrameId = requestAnimationFrame(draw);
-    }
+    };
 
-    draw();
+    const startAnimation = () => {
+      draw();
+      intervalId = setInterval(addRipple, 800);
+    };
 
-    const handleResize = () => {
+    const stopAnimation = () => {
+      clearInterval(intervalId);
+      cancelAnimationFrame(animationFrameId);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        startAnimation();
+      } else {
+        stopAnimation();
+      }
+    };
+
+    // 初期開始
+    startAnimation();
+
+    window.addEventListener("resize", () => {
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width;
       canvas.height = height;
-    };
+    });
 
-    window.addEventListener("resize", handleResize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      clearInterval(intervalId);
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationFrameId);
+      stopAnimation();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

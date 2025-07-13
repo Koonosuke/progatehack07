@@ -1,23 +1,43 @@
-// components/SignChatHeader.tsx
+import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const SignChatHeader = () => {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/web/api/auth/logout", { method: "POST" });
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const handleLogoClick = () => {
+    router.push("/home");
+  };
+
   return (
-    <h1
-      className="absolute top-24 left-1/2 transform -translate-x-1/2 
-                 text-cyan-300 font-fancy font-extrabold text-[80px]
-                 drop-shadow-[0_0_15px_rgba(173,216,230,0.7)] 
-                 flex justify-center gap-2"
+    <header
+      className="fixed top-0 left-0 w-full z-50
+             px-6 py-4 flex items-center justify-between
+             border-b border-white"
+      style={{ backgroundColor: "rgba(0, 0, 30, 1)" }}
+      onClick={handleLogoClick}
     >
-      {"Sign Chat".split("").map((char, i) => (
-        <span
-          key={i}
-          className="inline-block animate-bounce-slow"
-          style={{ animationDelay: `${i * 0.1}s` }}
-        >
-          {char}
-        </span>
-      ))}
-    </h1>
+      <img
+        src="/web/images/signchat-logo.png" // ← 画像パスを適宜変更
+        alt="Sign Chat Logo"
+        className="h-20 object-contain"
+      />
+      <button
+        onClick={handleSignOut}
+        className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-full shadow-md transition duration-200"
+      >
+        <LogOut className="w-5 h-5" />
+        サインアウト
+      </button>
+    </header>
   );
 };
 
